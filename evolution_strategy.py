@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 from tqdm.auto import tqdm
 
-from utils import sphere_function
+from utils import sphere_function, seabed_security
 
 
 class EvolutionStrategy:
@@ -133,14 +133,16 @@ class EvolutionStrategy:
 
 
 def main(args):
+    level2dim = {"1": 22803}
+
     es = EvolutionStrategy(
         num_parents=args.num_parents,
-        dim=args.dim,
+        dim=level2dim[args.level],
         mutation_strength=args.mutation_strength,
         self_adaptive=args.self_adaptive,
         selection_type=args.selection_type,
         optimization=args.optimization,
-        fitness_function=sphere_function,
+        fitness_function=seabed_security(args.jar_path, args.agent1, args.agent2, args.level, args.seed),
     )
 
     result = es.evolve(args.generation, args.num_offsprings, verbose=args.verbose)
@@ -158,10 +160,10 @@ def parse_args():
         help="µ in ES.",
     )
     parser.add_argument(
-        "--dim",
+        "--level",
         type=int,
-        default=10,
-        help="Dimention of the Weight.",
+        default=1,
+        help="The level of the Seabed Security.",
     )
     parser.add_argument(
         "--mutation_strength",
@@ -202,6 +204,30 @@ def parse_args():
         "--verbose",
         action="store_true",
         help="Whether or not to use verbose mode.",
+    )
+    parser.add_argument(
+        "--agent1",
+        type=str,
+        default="agents/level1.py",
+        help="The agent 1.",
+    )
+    parser.add_argument(
+        "--agent2",
+        type=str,
+        default="agents/level1.py",
+        help="The agent 2." ,
+    )
+    parser.add_argument(
+        "--jar_path",
+        type=str,
+        default="MH-final-project.jar",
+        help="The jar file used to simulate.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=9527,
+        help="The seed of simulation.",
     )
 
     return parser.parse_args()
