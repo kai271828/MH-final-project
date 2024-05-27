@@ -2,7 +2,7 @@ import sys
 import argparse
 import numpy as np
 
-from neural import NeuralNetwork
+from NeuralNetwork import NeuralNetwork
 
 # for each creature: [color one hot(4), type one hot(3), visible, scaned one hot[me, foe](2), x, y, vx, vy, radar one hot(4)] 18 dim
 # for each drone: [drone_x, drone_y, emergency, battery] 4 dim
@@ -42,14 +42,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--weights",
     type=str,
-    default=None,
+    default="",
     help="weights file",
 )
 args = parser.parse_args()
 
 model = NeuralNetwork(18 * 12 + 4 * 2, 100, 3)
-if args.weights is not None:
+if args.weights:
     model.load(args.weights)
+else:
+    model.load("/workspaces/MH-final-project/cache/weight.txt")
 
 
 pos_encoding = {"TL": 0, "TR": 1, "BL": 2, "BR": 3}

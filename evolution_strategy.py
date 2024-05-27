@@ -15,6 +15,8 @@ class EvolutionStrategy:
         selection_type="all",
         optimization="max",
         fitness_function=None,
+        multithread=False,
+        num_workers=8,
     ):
         assert fitness_function is not None, "You have to set fitness_function."
         assert selection_type in [
@@ -34,7 +36,10 @@ class EvolutionStrategy:
         self.learning_rate_1 = 1 / np.sqrt(self.dim)
         self.learning_rate_2 = 1 / np.sqrt(2 * np.sqrt(self.dim))
         self.optimization = optimization
+        self.multithread = multithread
+        self.num_workers = num_workers
 
+        print("Initializing...")
         if self.self_adaptive:
 
             weights = [
@@ -44,20 +49,39 @@ class EvolutionStrategy:
                         np.random.uniform(-1, 1, self.dim),
                     ),
                 )
-                for i in range(self.num_parents)
+                for _ in range(self.num_parents)
             ]
-            self.parents = [
-                {"weight": weight, "score": self.fitness_function(weight[self.dim :])}
-                for weight in weights
-            ]
+
+            if self.multithread:
+                scores = self.fitness_function([weight[self.dim :] for weight in weights], self.num_workers)
+                self.parents = [
+                    {"weight": weight, "score": scores[i]}
+                    for i, weight in enumerate(weights)
+                ]
+            else:
+                self.parents = [
+                    {"weight": weight, "score": self.fitness_function(weight[self.dim :])}
+                    for weight in weights
+                ]
         else:
             weights = [
                 np.random.uniform(-1, 1, self.dim) for i in range(self.num_parents)
             ]
-            self.parents = [
-                {"weight": weight, "score": self.fitness_function(weight)}
-                for weight in weights
-            ]
+            
+            if self.multithread:
+                scores = self.fitness_function(weights, self.num_workers)
+                self.parents = [
+                    {"weight": weight, "score": scores[i]}
+                    for i, weight in enumerate(weights)
+                ]
+
+            else:
+                
+                self.parents = [
+                    {"weight": weight, "score": self.fitness_function(weight)}
+                    for weight in weights
+                ]
+        print("Initialization Done")
 
     def _marriage(self):
         a, b = np.random.choice(self.num_parents, 2, replace=False)
@@ -104,36 +128,61 @@ class EvolutionStrategy:
             return offsprings[: self.num_parents]
         else:
             raise ValueError
+        
+    
 
     def evolve(self, generation, num_offsprings, verbose=False):
 
         for g in tqdm(range(generation)):
             offsprings = []
 
-            for l in range(num_offsprings):
-                index1, index2 = self._marriage()
-                child = self._recombine(index1, index2)
+            if self.multithread:
+                children = []
+                for l in range(num_offsprings):
+                    index1, index2 = self._marriage()
+                    child = self._recombine(index1, index2)
 
-                self._mutate(child)
+                    self._mutate(child)
 
-                offsprings.append(
-                    {
-                        "weight": child,
-                        "score": (
-                            self.fitness_function(child[self.dim :])
-                            if self.self_adaptive
-                            else self.fitness_function(child)
-                        ),
-                    }
-                )
+                    children.append(child)
 
-            self.parents = self._selection(offsprings)
+                scores = self.fitness_function([child[self.dim :] for child in children], self.num_workers) if self.self_adaptive else self.fitness_function(children)
+
+                for idx, child in enumerate(children):
+                    offsprings.append(
+                        {
+                            "weight": child,
+                            "score": scores[idx],
+                        }
+                    )                
+
+                self.parents = self._selection(offsprings)
+            
+            else:
+                for l in range(num_offsprings):
+                    index1, index2 = self._marriage()
+                    child = self._recombine(index1, index2)
+
+                    self._mutate(child)
+
+                    offsprings.append(
+                        {
+                            "weight": child,
+                            "score": (
+                                self.fitness_function(child[self.dim :])
+                                if self.self_adaptive
+                                else self.fitness_function(child)
+                            ),
+                        }
+                    )
+
+                self.parents = self._selection(offsprings)
 
         return self.parents
 
 
 def main(args):
-    level2dim = {"1": 22803}
+    level2dim = {1: 22803, 2: 22803, 3: 22803, 4: 22803,}
 
     es = EvolutionStrategy(
         num_parents=args.num_parents,
@@ -142,13 +191,15 @@ def main(args):
         self_adaptive=args.self_adaptive,
         selection_type=args.selection_type,
         optimization=args.optimization,
-        fitness_function=seabed_security(args.jar_path, args.agent1, args.agent2, args.level, args.seed),
+        fitness_function=seabed_security(args.jar_path, args.agent, args.opponent, args.opponent_weight_file, args.level, args.seed, difference_mode=args.difference_mode, verbose=args.verbose, parallel=args.multithread),
+        multithread=args.multithread,
+        num_workers=args.num_workers,
     )
 
     result = es.evolve(args.generation, args.num_offsprings, verbose=args.verbose)
 
     for r in result:
-        print(r)
+        print(r["score"])
 
 
 def parse_args():
@@ -175,6 +226,16 @@ def parse_args():
         "--self_adaptive",
         action="store_true",
         help="Whether or not to use self adaptive mutation strength.",
+    )
+    parser.add_argument(
+        "--multithread",
+        action="store_true",
+        help="Whether or not to use multithreading.",
+    )
+    parser.add_argument(
+        "--difference_mode",
+        action="store_true",
+        help="Whether or not to use difference_mode.",
     )
     parser.add_argument(
         "--selection_type",
@@ -206,21 +267,27 @@ def parse_args():
         help="Whether or not to use verbose mode.",
     )
     parser.add_argument(
-        "--agent1",
+        "--agent",
         type=str,
         default="agents/level1.py",
-        help="The agent 1.",
+        help="The agent to be trained.",
     )
     parser.add_argument(
-        "--agent2",
+        "--opponent",
         type=str,
-        default="agents/level1.py",
-        help="The agent 2." ,
+        default="starterAIs/SS_Starter.py",
+        help="The agent as an opponent." ,
+    )
+    parser.add_argument(
+        "--opponent_weight_file",
+        type=str,
+        default="",
+        help="The weight file of the opponent." ,
     )
     parser.add_argument(
         "--jar_path",
         type=str,
-        default="MH-final-project.jar",
+        default="simulate.jar",
         help="The jar file used to simulate.",
     )
     parser.add_argument(
@@ -228,6 +295,12 @@ def parse_args():
         type=int,
         default=9527,
         help="The seed of simulation.",
+    )
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=8,
+        help="The number of workers when using multithreading.",
     )
 
     return parser.parse_args()
