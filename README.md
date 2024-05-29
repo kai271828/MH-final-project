@@ -148,7 +148,8 @@ python evolution_strategy.py \
     --agent "agents/level1.py" \
     --opponent "starterAIs/SS_Starter.py" \
     --opponent_weight_file "" \ # No weight used here
-    --seed 9527
+    --seed 9527 \
+    --run_name "test"
 
 ```
 
