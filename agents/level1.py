@@ -7,6 +7,7 @@ from NeuralNetwork import NeuralNetwork
 # for each creature: [color one hot(4), type one hot(3), visible, scaned one hot[me, foe](2), x, y, vx, vy, radar one hot(4)] 18 dim
 # for each drone: [drone_x, drone_y, emergency, battery] 4 dim
 
+
 def reset_creatures(creatures):
     for i in creatures.keys():
         creatures[i]["visible"] = 0
@@ -15,6 +16,7 @@ def reset_creatures(creatures):
         creatures[i]["vx"] = -1
         creatures[i]["vy"] = -1
         creatures[i]["radar"] = [0, 0, 0, 0]
+
 
 def conver2vector(creatures, drones):
     vector = []
@@ -61,7 +63,17 @@ creature_count = int(input())
 creatures = {}
 for i in range(creature_count):
     creature_id, color, _type = [int(j) for j in input().split()]
-    creature_dict = {"color": [0, 0, 0, 0], "type": [0, 0, 0], "visible": 0, "scaned": [0, 0], "x": -1, "y": -1, "vx": -1, "vy": -1, "radar": [0, 0, 0, 0]}
+    creature_dict = {
+        "color": [0, 0, 0, 0],
+        "type": [0, 0, 0],
+        "visible": 0,
+        "scaned": [0, 0],
+        "x": -1,
+        "y": -1,
+        "vx": -1,
+        "vy": -1,
+        "radar": [0, 0, 0, 0],
+    }
     creature_dict["color"][color] = 1
     creature_dict["type"][_type] = 1
     creatures[creature_id] = creature_dict
@@ -90,15 +102,29 @@ while True:
 
     my_drone_count = int(input())
     for i in range(my_drone_count):
-        drone_id, drone_x, drone_y, emergency, battery = [int(j) for j in input().split()]
+        drone_id, drone_x, drone_y, emergency, battery = [
+            int(j) for j in input().split()
+        ]
 
-        drones[drone_id] = {"x": drone_x, "y": drone_y, "emergency": emergency, "battery": battery}
+        drones[drone_id] = {
+            "x": drone_x,
+            "y": drone_y,
+            "emergency": emergency,
+            "battery": battery,
+        }
 
     foe_drone_count = int(input())
     for i in range(foe_drone_count):
-        drone_id, drone_x, drone_y, emergency, battery = [int(j) for j in input().split()]
+        drone_id, drone_x, drone_y, emergency, battery = [
+            int(j) for j in input().split()
+        ]
 
-        drones[drone_id] = {"x": drone_x, "y": drone_y, "emergency": emergency, "battery": battery}
+        drones[drone_id] = {
+            "x": drone_x,
+            "y": drone_y,
+            "emergency": emergency,
+            "battery": battery,
+        }
 
     drone_scan_count = int(input())
     for i in range(drone_scan_count):
@@ -107,7 +133,9 @@ while True:
 
     visible_creature_count = int(input())
     for i in range(visible_creature_count):
-        creature_id, creature_x, creature_y, creature_vx, creature_vy = [int(j) for j in input().split()]
+        creature_id, creature_x, creature_y, creature_vx, creature_vy = [
+            int(j) for j in input().split()
+        ]
         creatures[creature_id]["visible"] = 1
         creatures[creature_id]["x"] = creature_x
         creatures[creature_id]["y"] = creature_y
@@ -124,7 +152,6 @@ while True:
 
         creatures[creature_id]["radar"][pos_encoding[radar]] = 1
 
-
     for i in range(my_drone_count):
 
         inputs = conver2vector(creatures, drones)
@@ -134,5 +161,6 @@ while True:
         outputs[2] = 1 if outputs[2] > 0.5 else 0
 
         # MOVE <x> <y> <light (1|0)> | WAIT <light (1|0)>
-        print(f"MOVE {int(units * outputs[0])} {int(units * outputs[1])} {int(outputs[2])}")
-        
+        print(
+            f"MOVE {int(units * outputs[0])} {int(units * outputs[1])} {int(outputs[2])}"
+        )

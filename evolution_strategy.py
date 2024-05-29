@@ -53,21 +53,26 @@ class EvolutionStrategy:
             ]
 
             if self.multithread:
-                scores = self.fitness_function([weight[self.dim :] for weight in weights], self.num_workers)
+                scores = self.fitness_function(
+                    [weight[self.dim :] for weight in weights], self.num_workers
+                )
                 self.parents = [
                     {"weight": weight, "score": scores[i]}
                     for i, weight in enumerate(weights)
                 ]
             else:
                 self.parents = [
-                    {"weight": weight, "score": self.fitness_function(weight[self.dim :])}
+                    {
+                        "weight": weight,
+                        "score": self.fitness_function(weight[self.dim :]),
+                    }
                     for weight in weights
                 ]
         else:
             weights = [
                 np.random.uniform(-1, 1, self.dim) for i in range(self.num_parents)
             ]
-            
+
             if self.multithread:
                 scores = self.fitness_function(weights, self.num_workers)
                 self.parents = [
@@ -76,7 +81,7 @@ class EvolutionStrategy:
                 ]
 
             else:
-                
+
                 self.parents = [
                     {"weight": weight, "score": self.fitness_function(weight)}
                     for weight in weights
@@ -128,8 +133,6 @@ class EvolutionStrategy:
             return offsprings[: self.num_parents]
         else:
             raise ValueError
-        
-    
 
     def evolve(self, generation, num_offsprings, verbose=False):
 
@@ -146,7 +149,13 @@ class EvolutionStrategy:
 
                     children.append(child)
 
-                scores = self.fitness_function([child[self.dim :] for child in children], self.num_workers) if self.self_adaptive else self.fitness_function(children)
+                scores = (
+                    self.fitness_function(
+                        [child[self.dim :] for child in children], self.num_workers
+                    )
+                    if self.self_adaptive
+                    else self.fitness_function(children)
+                )
 
                 for idx, child in enumerate(children):
                     offsprings.append(
@@ -154,10 +163,10 @@ class EvolutionStrategy:
                             "weight": child,
                             "score": scores[idx],
                         }
-                    )                
+                    )
 
                 self.parents = self._selection(offsprings)
-            
+
             else:
                 for l in range(num_offsprings):
                     index1, index2 = self._marriage()
@@ -182,7 +191,12 @@ class EvolutionStrategy:
 
 
 def main(args):
-    level2dim = {1: 22803, 2: 22803, 3: 22803, 4: 22803,}
+    level2dim = {
+        1: 22803,
+        2: 22803,
+        3: 22803,
+        4: 22803,
+    }
 
     es = EvolutionStrategy(
         num_parents=args.num_parents,
@@ -191,7 +205,17 @@ def main(args):
         self_adaptive=args.self_adaptive,
         selection_type=args.selection_type,
         optimization=args.optimization,
-        fitness_function=seabed_security(args.jar_path, args.agent, args.opponent, args.opponent_weight_file, args.level, args.seed, difference_mode=args.difference_mode, verbose=args.verbose, parallel=args.multithread),
+        fitness_function=seabed_security(
+            args.jar_path,
+            args.agent,
+            args.opponent,
+            args.opponent_weight_file,
+            args.level,
+            args.seed,
+            difference_mode=args.difference_mode,
+            verbose=args.verbose,
+            parallel=args.multithread,
+        ),
         multithread=args.multithread,
         num_workers=args.num_workers,
     )
@@ -276,13 +300,13 @@ def parse_args():
         "--opponent",
         type=str,
         default="starterAIs/SS_Starter.py",
-        help="The agent as an opponent." ,
+        help="The agent as an opponent.",
     )
     parser.add_argument(
         "--opponent_weight_file",
         type=str,
         default="",
-        help="The weight file of the opponent." ,
+        help="The weight file of the opponent.",
     )
     parser.add_argument(
         "--jar_path",
