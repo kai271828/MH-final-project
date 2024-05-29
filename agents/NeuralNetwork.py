@@ -46,7 +46,6 @@ class NeuralNetwork:
                     self.b_2.flatten(),
                 )
             ),
-            delimiter=",",
         )
 
     def load_from_numpy(self, weights):
