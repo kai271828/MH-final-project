@@ -49,7 +49,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-model = NeuralNetwork(18 * 12 + 4 * 2, 100, 3)
+model = NeuralNetwork(18 * 12 + 4 * 2, 32, 3)
 if args.weights:
     model.load(args.weights)
 
