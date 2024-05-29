@@ -46,6 +46,7 @@ class NeuralNetwork:
                     self.b_2.flatten(),
                 )
             ),
+            delimiter=",",
         )
 
     def sigmoid(self, x):

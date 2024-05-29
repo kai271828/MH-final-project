@@ -1,4 +1,5 @@
 import argparse
+import os
 import numpy as np
 from tqdm.auto import tqdm
 
@@ -225,6 +226,14 @@ def main(args):
     for r in result:
         print(r["score"])
 
+    if not os.path.exists("result"):
+        os.makedirs("result")
+
+    des = os.path.join("result", args.run_name)
+    if not os.path.exists(des):
+        os.makedirs(des)
+    np.savetxt(f"{des}/best.txt", result[0]["score"], delimiter=",")
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Evolution Strategy.")
@@ -325,6 +334,12 @@ def parse_args():
         type=int,
         default=8,
         help="The number of workers when using multithreading.",
+    )
+    parser.add_argument(
+        "--run_name",
+        type=str,
+        default="baseline",
+        help="The name of this run.",
     )
 
     return parser.parse_args()

@@ -52,8 +52,6 @@ args = parser.parse_args()
 model = NeuralNetwork(18 * 12 + 4 * 2, 100, 3)
 if args.weights:
     model.load(args.weights)
-else:
-    model.load("/workspaces/MH-final-project/cache/weight.txt")
 
 
 pos_encoding = {"TL": 0, "TR": 1, "BL": 2, "BR": 3}
