@@ -23,7 +23,7 @@ def seabed_security(jar_path, agent, opponent, opponent_weight_file, level, seed
         
         np.savetxt(weight_file, weight.flatten())
 
-        _seed = int(np.random.normal(-100, 100) * seed)
+        _seed = int(np.random.uniform(-10000, 10000) * seed)
 
         result = simulate(jar_path, agent, weight_file, opponent, opponent_weight_file, str(level), str(_seed))
 
@@ -31,10 +31,10 @@ def seabed_security(jar_path, agent, opponent, opponent_weight_file, level, seed
         score1 = int(result[-3])
         score2 = int(result[-2])
 
-        ret = score1 - score2 if difference_mode else score1
+        ret = 0.5 * score1 + 0.5 * (score1 - score2) if difference_mode else score1
 
         if verbose:
-            print(f"return score: {ret}")
+            print(f"agent's score: {score1},\topponent's score: {score2},\treturned score: {ret}")
 
         return ret if not parallel else (int(weight_file.split("_")[-1].split(".")[0]), ret)
     

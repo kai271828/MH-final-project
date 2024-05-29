@@ -193,10 +193,10 @@ class EvolutionStrategy:
 
 def main(args):
     level2dim = {
-        1: 22803,
-        2: 22803,
-        3: 22803,
-        4: 22803,
+        1: 8355,
+        2: 8355,
+        3: 8355,
+        4: 8355,
     }
 
     es = EvolutionStrategy(
@@ -223,8 +223,6 @@ def main(args):
 
     result = es.evolve(args.generation, args.num_offsprings, verbose=args.verbose)
 
-    for r in result:
-        print(r["score"])
 
     if not os.path.exists("result"):
         os.makedirs("result")
@@ -232,7 +230,15 @@ def main(args):
     des = os.path.join("result", args.run_name)
     if not os.path.exists(des):
         os.makedirs(des)
-    np.savetxt(f"{des}/best.txt", result[0]["weight"], newline=",", fmt="%.3f")
+
+    for i, r in enumerate(result):
+        print(r["score"])
+        weight = r["weight"][level2dim[args.level]:] if args.self_adaptive else r["weight"]
+
+        np.savetxt(f"{des}/{i + 1}-th_s.txt", weight, newline=",", fmt="%.3f")
+        np.savetxt(f"{des}/{i + 1}-th_original.txt", weight, )
+
+    
 
 
 def parse_args():

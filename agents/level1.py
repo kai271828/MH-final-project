@@ -20,7 +20,7 @@ def reset_creatures(creatures):
 
 def conver2vector(creatures, drones):
     vector = []
-    for i in creatures.keys():
+    for i in sorted(creatures.keys()):
         vector.extend(creatures[i]["color"])
         vector.extend(creatures[i]["type"])
         vector.append(creatures[i]["visible"])
@@ -31,7 +31,7 @@ def conver2vector(creatures, drones):
         vector.append(creatures[i]["vy"])
         vector.extend(creatures[i]["radar"])
 
-    for i in drones.keys():
+    for i in sorted(drones.keys()):
         vector.append(drones[i]["x"])
         vector.append(drones[i]["y"])
         vector.append(drones[i]["emergency"])
@@ -49,7 +49,9 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-model = NeuralNetwork(18 * 12 + 4 * 2, 32, 3)
+
+model = NeuralNetwork(18 * 12 + 4 * 2)
+
 if args.weights:
     model.load(args.weights)
 
@@ -105,8 +107,8 @@ while True:
         ]
 
         drones[drone_id] = {
-            "x": drone_x,
-            "y": drone_y,
+            "x": drone_x / units,
+            "y": drone_y / units,
             "emergency": emergency,
             "battery": battery,
         }
@@ -118,8 +120,8 @@ while True:
         ]
 
         drones[drone_id] = {
-            "x": drone_x,
-            "y": drone_y,
+            "x": drone_x / units,
+            "y": drone_y / units,
             "emergency": emergency,
             "battery": battery,
         }
@@ -135,10 +137,10 @@ while True:
             int(j) for j in input().split()
         ]
         creatures[creature_id]["visible"] = 1
-        creatures[creature_id]["x"] = creature_x
-        creatures[creature_id]["y"] = creature_y
-        creatures[creature_id]["vx"] = creature_vx
-        creatures[creature_id]["vy"] = creature_vy
+        creatures[creature_id]["x"] = creature_x / units
+        creatures[creature_id]["y"] = creature_y / units
+        creatures[creature_id]["vx"] = creature_vx / units
+        creatures[creature_id]["vy"] = creature_vy / units
 
     radar_blip_count = int(input())
     print(f"radar_blip_count: {radar_blip_count}", file=sys.stderr, flush=True)
