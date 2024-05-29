@@ -49,6 +49,27 @@ class NeuralNetwork:
             delimiter=",",
         )
 
+    def load_from_numpy(self, weights):
+        offset = 0
+        size = self.input_size * self.hidden_size
+        self.w_1 = weights[offset : offset + size].reshape(
+            (self.hidden_size, self.input_size)
+        )
+        offset += size
+
+        size = self.hidden_size
+        self.b_1 = weights[offset : offset + size].reshape((self.hidden_size, 1))
+        offset += size
+
+        size = self.output_size * self.hidden_size
+        self.w_2 = weights[offset : offset + size].reshape(
+            (self.output_size, self.hidden_size)
+        )
+        offset += size
+
+        size = self.output_size
+        self.b_2 = weights[offset : offset + size].reshape((self.output_size, 1))
+
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
