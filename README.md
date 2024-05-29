@@ -147,7 +147,7 @@ python evolution_strategy.py \
     --num_offsprings 10 \
     --agent "agents/level1.py" \
     --opponent "starterAIs/SS_Starter.py" \
-    --opponent_weight_file "" \ # No weight used here
+    --opponent_weight_file "" \
     --seed 9527 \
     --run_name "test"
 
