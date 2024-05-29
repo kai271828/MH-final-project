@@ -232,7 +232,7 @@ def main(args):
     des = os.path.join("result", args.run_name)
     if not os.path.exists(des):
         os.makedirs(des)
-    np.savetxt(f"{des}/best.txt", result[0]["weight"], newline=",")
+    np.savetxt(f"{des}/best.txt", result[0]["weight"], newline=",", fmt="%.4e")
 
 
 def parse_args():
