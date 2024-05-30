@@ -139,13 +139,13 @@ Here is an example:
 ```sh
 python evolution_strategy.py \
     --num_parents 10 \
-    --level 1 \
+    --level 2 \
     --self_adaptive \
     --selection_type "all" \
     --optimization "max" \
     --generation 20 \
     --num_offsprings 10 \
-    --agent "agents/level1.py" \
+    --agent "agents/level2.py" \
     --opponent "starterAIs/SS_Starter.py" \
     --opponent_weight_file "" \
     --seed 9527 \

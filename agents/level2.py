@@ -38,7 +38,7 @@ def auto_route(visible, x, y):
             (x - visible[i]["x"]) ** 2 + (y - visible[i]["y"]) ** 2
         )
     visible.sort(key=lambda e: e["distance"])
-
+    
     des_x = -1
     des_y = -1
 
@@ -54,6 +54,50 @@ def auto_route(visible, x, y):
         print(f"MOVE {int(des_x)} {int(des_y)} 1")
         return True
 
+def act(action, light, x, y, units):
+    def clip(value, maximum=9999, minimum=0):
+        return max(min(value, maximum), minimum)
+
+    if action == 0:
+        # move T
+        des_x = x
+        des_y = y - 600
+    elif action == 1:
+        # move TR
+        des_x = x + 300
+        des_y = y - 300
+    elif action == 2:
+        # move R
+        des_x = x
+        des_y = y + 600
+    elif action == 3:
+        # move BR
+        des_x = x + 300
+        des_y = y + 300
+    elif action == 4:
+        # move B
+        des_x = x
+        des_y = y + 600
+    elif action == 5:
+        # move BL
+        des_x = x - 300
+        des_y = y + 300
+    elif action == 6:
+        # move L
+        des_x = x - 600
+        des_y = y
+    elif action == 7:
+        # move TL
+        des_x = x - 300
+        des_y = y - 300
+    elif action == 8:
+        # wait
+        print(f"WAIT {light}")
+        return
+
+    # MOVE <x> <y> <light (1|0)> | WAIT <light (1|0)>
+    print(f"MOVE {clip(des_x)} {clip(des_y)} {light}")
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -62,17 +106,19 @@ parser.add_argument(
     default="",
     help="weights file",
 )
-args = parser.parse_args()
+
+# args = parser.parse_args()
 
 
-model = NeuralNetwork(15 * 12 + 4 * 2)
+model = NeuralNetwork(15 * 12 + 3 * 2)
 
-if args.weights:
-    model.load(args.weights)
+# if args.weights:
+#     model.load(args.weights)
 
 
 pos_encoding = {"TL": 0, "TR": 1, "BL": 2, "BR": 3}
 units = 10000
+action_lock = False
 
 creature_count = int(input())
 creatures = {}
@@ -146,7 +192,7 @@ while True:
         if drone_id == my_drone_id:
             creatures[creature_id]["my_record"][0] = 1
         else:
-            creatures[creature_id]["my_record"][0] = 1
+            creatures[creature_id]["foe_record"][0] = 1
 
     visible_creature_count = int(input())
     for i in range(visible_creature_count):
@@ -179,6 +225,11 @@ while True:
             file=sys.stderr,
             flush=True,
         )
+    print(
+            f"visible: {visible}",
+            file=sys.stderr,
+            flush=True,
+        )
 
     for i in range(my_drone_count):
 
@@ -187,14 +238,21 @@ while True:
                 action_lock = False
             else:
                 print(f"MOVE {drones[my_drone_id]['x']} 0 0")
+                continue
+
+        if visible_creature_count > 0:
+            move = auto_route(visible, drones[my_drone_id]["x"], drones[my_drone_id]["y"])
+            if move:
+                continue
 
         inputs = conver2vector(creatures, drones)
 
         outputs = model(inputs).flatten()
 
         action = np.argmax(outputs[:-1])
+
         print(
-            f"action: {action}, {drones[my_drone_id]['x']}, {drones[my_drone_id]['y']}",
+            f"action: {action}",
             file=sys.stderr,
             flush=True,
         )
@@ -202,6 +260,7 @@ while True:
         if action == 9:
             action_lock = True
             print(f"MOVE {drones[my_drone_id]['x']} 0 0")
+            continue
 
         light = 1 if outputs[-1] > 0.5 else 0
 
