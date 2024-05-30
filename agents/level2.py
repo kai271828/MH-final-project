@@ -4,40 +4,55 @@ import numpy as np
 
 from NeuralNetwork import NeuralNetwork
 
-# for each creature: [color one hot(4), type one hot(3), visible, scaned one hot[me, foe](2), x, y, vx, vy, radar one hot(4)] 18 dim
-# for each drone: [drone_x, drone_y, emergency, battery] 4 dim
+# for each creature: [color one hot(4), type one hot(3), my_record[scaned, saved](2), foe_record[scaned, saved](2), radar one hot(4)] 15 dim
+# for each drone: [drone_x, drone_y, battery] 3 dim
 
 
 def reset_creatures(creatures):
     for i in creatures.keys():
-        creatures[i]["visible"] = 0
-        creatures[i]["x"] = -1
-        creatures[i]["y"] = -1
-        creatures[i]["vx"] = -1
-        creatures[i]["vy"] = -1
         creatures[i]["radar"] = [0, 0, 0, 0]
 
 
 def conver2vector(creatures, drones):
     vector = []
-    for i in sorted(creatures.keys()):
-        vector.extend(creatures[i]["color"])
-        vector.extend(creatures[i]["type"])
-        vector.append(creatures[i]["visible"])
-        vector.extend(creatures[i]["scaned"])
-        vector.append(creatures[i]["x"])
-        vector.append(creatures[i]["y"])
-        vector.append(creatures[i]["vx"])
-        vector.append(creatures[i]["vy"])
-        vector.extend(creatures[i]["radar"])
 
     for i in sorted(drones.keys()):
         vector.append(drones[i]["x"])
         vector.append(drones[i]["y"])
-        vector.append(drones[i]["emergency"])
+        # vector.append(drones[i]["emergency"])
         vector.append(drones[i]["battery"])
 
+    for i in sorted(creatures.keys()):
+        vector.extend(creatures[i]["color"])
+        vector.extend(creatures[i]["type"])
+        vector.extend(creatures[i]["my_record"])
+        vector.extend(creatures[i]["foe_record"])
+        vector.extend(creatures[i]["radar"])
+
     return np.array(vector).reshape((-1, 1))
+
+
+def auto_route(visible, x, y):
+    for i in range(len(visible)):
+        visible[i]["distance"] = np.sqrt(
+            (x - visible[i]["x"]) ** 2 + (y - visible[i]["y"]) ** 2
+        )
+    visible.sort(key=lambda e: e["distance"])
+
+    des_x = -1
+    des_y = -1
+
+    for i in range(len(visible)):
+        if creatures[visible[i]["id"]]["my_record"][0] == 0:
+            des_x = visible[i]["x"] + visible[i]["vx"]
+            des_y = visible[i]["y"] + visible[i]["vy"]
+            break
+
+    if des_x == -1 or des_y == -1:
+        return False
+    else:
+        print(f"MOVE {int(des_x)} {int(des_y)} 1")
+        return True
 
 
 parser = argparse.ArgumentParser()
@@ -50,7 +65,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-model = NeuralNetwork(18 * 12 + 4 * 2)
+model = NeuralNetwork(15 * 12 + 4 * 2)
 
 if args.weights:
     model.load(args.weights)
@@ -66,12 +81,8 @@ for i in range(creature_count):
     creature_dict = {
         "color": [0, 0, 0, 0],
         "type": [0, 0, 0],
-        "visible": 0,
-        "scaned": [0, 0],
-        "x": -1,
-        "y": -1,
-        "vx": -1,
-        "vy": -1,
+        "my_record": [0, 0],
+        "foe_record": [0, 0],
         "radar": [0, 0, 0, 0],
     }
     creature_dict["color"][color] = 1
@@ -84,6 +95,7 @@ drones = {}
 while True:
 
     reset_creatures(creatures)
+    visible = []
 
     my_score = int(input())
     foe_score = int(input())
@@ -92,24 +104,25 @@ while True:
     for i in range(my_scan_count):
         creature_id = int(input())
 
-        creatures[creature_id]["scaned"][0] = 1
+        creatures[creature_id]["my_record"][1] = 1
 
     foe_scan_count = int(input())
     for i in range(foe_scan_count):
         creature_id = int(input())
 
-        creatures[creature_id]["scaned"][1] = 1
+        creatures[creature_id]["foe_record"][1] = 1
 
     my_drone_count = int(input())
     for i in range(my_drone_count):
         drone_id, drone_x, drone_y, emergency, battery = [
             int(j) for j in input().split()
         ]
+        my_drone_id = drone_id
 
         drones[drone_id] = {
-            "x": drone_x / units,
-            "y": drone_y / units,
-            "emergency": emergency,
+            "x": drone_x,
+            "y": drone_y,
+            # "emergency": emergency,
             "battery": battery,
         }
 
@@ -118,29 +131,37 @@ while True:
         drone_id, drone_x, drone_y, emergency, battery = [
             int(j) for j in input().split()
         ]
+        foe_drone_id = drone_id
 
         drones[drone_id] = {
-            "x": drone_x / units,
-            "y": drone_y / units,
-            "emergency": emergency,
+            "x": drone_x,
+            "y": drone_y,
+            # "emergency": emergency,
             "battery": battery,
         }
 
     drone_scan_count = int(input())
     for i in range(drone_scan_count):
         drone_id, creature_id = [int(j) for j in input().split()]
-        print(f"{drone_id}, {creature_id}", file=sys.stderr, flush=True)
+        if drone_id == my_drone_id:
+            creatures[creature_id]["my_record"][0] = 1
+        else:
+            creatures[creature_id]["my_record"][0] = 1
 
     visible_creature_count = int(input())
     for i in range(visible_creature_count):
         creature_id, creature_x, creature_y, creature_vx, creature_vy = [
             int(j) for j in input().split()
         ]
-        creatures[creature_id]["visible"] = 1
-        creatures[creature_id]["x"] = creature_x / units
-        creatures[creature_id]["y"] = creature_y / units
-        creatures[creature_id]["vx"] = creature_vx / units
-        creatures[creature_id]["vy"] = creature_vy / units
+        visible.append(
+            {
+                "id": creature_id,
+                "x": creature_x,
+                "y": creature_y,
+                "vx": creature_vx,
+                "vy": creature_vy,
+            }
+        )
 
     radar_blip_count = int(input())
     print(f"radar_blip_count: {radar_blip_count}", file=sys.stderr, flush=True)
@@ -152,15 +173,36 @@ while True:
 
         creatures[creature_id]["radar"][pos_encoding[radar]] = 1
 
+    for item in sorted(creatures.items()):
+        print(
+            item,
+            file=sys.stderr,
+            flush=True,
+        )
+
     for i in range(my_drone_count):
+
+        if action_lock:
+            if drones[my_drone_id]["y"] <= 500:
+                action_lock = False
+            else:
+                print(f"MOVE {drones[my_drone_id]['x']} 0 0")
 
         inputs = conver2vector(creatures, drones)
 
         outputs = model(inputs).flatten()
 
-        outputs[2] = 1 if outputs[2] > 0.5 else 0
-
-        # MOVE <x> <y> <light (1|0)> | WAIT <light (1|0)>
+        action = np.argmax(outputs[:-1])
         print(
-            f"MOVE {int(units * outputs[0])} {int(units * outputs[1])} {int(outputs[2])}"
+            f"action: {action}, {drones[my_drone_id]['x']}, {drones[my_drone_id]['y']}",
+            file=sys.stderr,
+            flush=True,
         )
+
+        if action == 9:
+            action_lock = True
+            print(f"MOVE {drones[my_drone_id]['x']} 0 0")
+
+        light = 1 if outputs[-1] > 0.5 else 0
+
+        act(action, light, drones[my_drone_id]["x"], drones[my_drone_id]["y"], units)

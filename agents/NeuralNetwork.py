@@ -2,7 +2,9 @@ import numpy as np
 
 
 class NeuralNetwork:
-    def __init__(self, input_size, hidden1_size=32, hidden2_size=32, output_size=3):
+    """The first 10 elements of output mean move TOP, move TR, move R, move BR, move BOTTOM, move BL, move LEFT, move TL, wait, back, and the final element means light."""
+
+    def __init__(self, input_size, hidden1_size=32, hidden2_size=32, output_size=11):
         self.input_size = input_size
         self.hidden1_size = hidden1_size
         self.hidden2_size = hidden2_size
@@ -97,10 +99,16 @@ class NeuralNetwork:
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
+    def softmax(self, x):
+        exp_sum = np.sum(np.exp(x))
+        return np.exp(x) / exp_sum
+
     def __call__(self, inputs):
         x = self.sigmoid(self.w_1 @ inputs + self.b_1)
         x = self.sigmoid(self.w_2 @ x + self.b_2)
-        x = self.sigmoid(self.w_3 @ x + self.b_3)
+        x = self.w_3 @ x + self.b_3
 
+        x[:-1] = self.softmax(x[:-1])
+        x[-1] = self.sigmoid(x[-1])
 
         return x

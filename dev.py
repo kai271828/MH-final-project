@@ -2,17 +2,12 @@ import numpy as np
 from agents.NeuralNetwork import NeuralNetwork
 from utils import simulate, seabed_security
 
-model = NeuralNetwork(18 * 12 + 4 * 2)
+model = NeuralNetwork(15 * 12 + 3 * 2)
 
-test = np.random.normal(0, 1, 18 * 12 + 4 * 2).reshape((-1, 1))
+test = np.random.normal(0, 1, (11, 1))
 
-model.save("dev.txt")
-model.load("dev.txt")
+test[:-1] = model.softmax(test[:-1])
+test[-1] = model.sigmoid(test[-1])
 
-result = model(test)
-
-print(model.w_1.size + model.b_1.size + model.w_2.size + model.b_2.size +  model.w_3.size + model.b_3.size)
-
-print(result)
-
-
+print(test)
+print(np.argmax(test[:-1]))
