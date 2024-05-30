@@ -38,7 +38,7 @@ def auto_route(visible, x, y):
             (x - visible[i]["x"]) ** 2 + (y - visible[i]["y"]) ** 2
         )
     visible.sort(key=lambda e: e["distance"])
-    
+
     des_x = -1
     des_y = -1
 
@@ -53,6 +53,7 @@ def auto_route(visible, x, y):
     else:
         print(f"MOVE {int(des_x)} {int(des_y)} 1")
         return True
+
 
 def act(action, light, x, y, units):
     def clip(value, maximum=9999, minimum=0):
@@ -107,13 +108,13 @@ parser.add_argument(
     help="weights file",
 )
 
-# args = parser.parse_args()
+args = parser.parse_args()
 
 
 model = NeuralNetwork(15 * 12 + 3 * 2)
 
-# if args.weights:
-#     model.load(args.weights)
+if args.weights:
+    model.load(args.weights)
 
 
 pos_encoding = {"TL": 0, "TR": 1, "BL": 2, "BR": 3}
@@ -226,10 +227,10 @@ while True:
             flush=True,
         )
     print(
-            f"visible: {visible}",
-            file=sys.stderr,
-            flush=True,
-        )
+        f"visible: {visible}",
+        file=sys.stderr,
+        flush=True,
+    )
 
     for i in range(my_drone_count):
 
@@ -241,7 +242,9 @@ while True:
                 continue
 
         if visible_creature_count > 0:
-            move = auto_route(visible, drones[my_drone_id]["x"], drones[my_drone_id]["y"])
+            move = auto_route(
+                visible, drones[my_drone_id]["x"], drones[my_drone_id]["y"]
+            )
             if move:
                 continue
 
