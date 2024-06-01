@@ -145,6 +145,7 @@ python evolution_strategy.py \
     --optimization "max" \
     --generation 50 \
     --num_offsprings 20 \
+    --learning_factor 5 \
     --agent "agents/level2.py" \
     --opponent "starterAIs/SS_Starter.py" \
     --opponent_weight_file "" \
