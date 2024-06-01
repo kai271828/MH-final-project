@@ -99,27 +99,34 @@ class EvolutionStrategy:
 
     def _mutate(self, child):
         if self.self_adaptive:
-            child[:self.dim] = np.maximum(child[:self.dim] * np.exp(self.learning_rate_1 * np.random.normal(0, 1, size=self.dim) + self.learning_rate_2 * np.random.normal(0, 1)), 1e-6)
-            child[self.dim:] += child[:self.dim] * np.random.normal(0, 1, size=self.dim)
+            child[: self.dim] = np.maximum(
+                child[: self.dim]
+                * np.exp(
+                    self.learning_rate_1 * np.random.normal(0, 1, size=self.dim)
+                    + self.learning_rate_2 * np.random.normal(0, 1)
+                ),
+                1e-6,
+            )
+            child[self.dim :] += child[: self.dim] * np.random.normal(
+                0, 1, size=self.dim
+            )
             # for i in range(len(child)):
-                # if i < self.dim:
-                #     child[i] = max(
-                #         child[i]
-                #         * np.exp(
-                #             self.learning_rate_1 * np.random.normal(0, 1)
-                #             + self.learning_rate_2 * np.random.normal(0, 1)
-                #         ),
-                #         1e-6,
-                #     )
-                # else:
-                #     child[i] += child[i - self.dim] * np.random.normal(0, 1)
+            # if i < self.dim:
+            #     child[i] = max(
+            #         child[i]
+            #         * np.exp(
+            #             self.learning_rate_1 * np.random.normal(0, 1)
+            #             + self.learning_rate_2 * np.random.normal(0, 1)
+            #         ),
+            #         1e-6,
+            #     )
+            # else:
+            #     child[i] += child[i - self.dim] * np.random.normal(0, 1)
 
         else:
             # for i in range(len(child)):
             #     child[i] += self.mutation_strength * np.random.normal(0, 1)
             child += self.mutation_strength * np.random.normal(0, 1, size=self.dim)
-
-            
 
     def _selection(self, offsprings):
         if self.selection_type == "all":
