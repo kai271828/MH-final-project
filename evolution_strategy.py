@@ -231,6 +231,7 @@ def main(args):
         ),
         multithread=args.multithread,
         num_workers=args.num_workers,
+        learning_factor=args.learning_factor,
     )
 
     result = es.evolve(args.generation, args.num_offsprings, verbose=args.verbose)
@@ -360,6 +361,12 @@ def parse_args():
         type=str,
         default="baseline",
         help="The name of this run.",
+    )
+    parser.add_argument(
+        "--learning_factor",
+        type=float,
+        default=5.0,
+        help="The factor of learning rate.",
     )
 
     return parser.parse_args()
