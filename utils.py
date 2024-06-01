@@ -57,7 +57,7 @@ def seabed_security(jar_path, agent, opponent, opponent_weight_file, level, seed
                     result = future.result()
                     scores[result[0]] = result[1]
                 except Exception as e:
-                    print(f'An error occurred: {e}')
+                    print(f'An error occurred in ThreadPoolExecutor: {e}')
 
         return scores
 

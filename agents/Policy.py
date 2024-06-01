@@ -30,8 +30,10 @@ class Policy:
 
         self.weights["dm_w_1"] = np.random.normal(0, 1.5, size=(self.size_list[1], self.size_list[0]))
         self.weights["dm_b_1"] = np.zeros((self.size_list[1], 1))
-        self.weights["dm_w_2"] = np.random.normal(0, 1.5, size=(self.size_list[2], self.size_list[1]))
-        self.weights["dm_b_2"] = np.zeros((self.size_list[2], 1))
+        self.weights["dm_w_2"] = np.random.normal(0, 1.5, size=(self.size_list[1], self.size_list[1]))
+        self.weights["dm_b_2"] = np.zeros((self.size_list[1], 1))
+        self.weights["dm_w_3"] = np.random.normal(0, 1.5, size=(self.size_list[2], self.size_list[1]))
+        self.weights["dm_b_3"] = np.zeros((self.size_list[2], 1))
 
         self.weights["act_w_1"] = np.random.normal(0, 1.5, size=(self.size_list[4], self.size_list[3]))
         self.weights["act_b_1"] = np.zeros((self.size_list[4], 1))
@@ -75,8 +77,9 @@ class Policy:
         return np.exp(x) / exp_sum
 
     def decision_maker(self, inputs):
-        x = self.sigmoid(self.weights["dm_w_1"] @ inputs + self.weights["dm_b_1"])
-        x = self.softmax(self.weights["dm_w_2"] @ x + self.weights["dm_b_2"])
+        x = np.tanh(self.weights["dm_w_1"] @ inputs + self.weights["dm_b_1"])
+        x = np.tanh(self.weights["dm_w_2"] @ x + self.weights["dm_b_2"])
+        x = self.softmax(self.weights["dm_w_3"] @ x + self.weights["dm_b_3"])
         return x
     
     def actor(self, inputs):

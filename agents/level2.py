@@ -299,7 +299,7 @@ while True:
         # {"TL": 0, "TR": 1, "BL": 2, "BR": 3}
         des_x = drones[my_drone_id]["x"]
         des_y = drones[my_drone_id]["y"]
-        light = 1 if np.random.random() < (same_target_turn / 100) else 0
+        light = 1 if np.random.random() < (same_target_turn / 50) ** 2 else 0
 
         if radar[0]:
             des_x -= 600
