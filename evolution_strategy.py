@@ -18,6 +18,7 @@ class EvolutionStrategy:
         fitness_function=None,
         multithread=False,
         num_workers=8,
+        learning_factor=5,
     ):
         assert fitness_function is not None, "You have to set fitness_function."
         assert selection_type in [
@@ -34,8 +35,8 @@ class EvolutionStrategy:
         self.selection_type = selection_type
         self.fitness_function = fitness_function
         self.self_adaptive = self_adaptive
-        self.learning_rate_1 = 1 / np.sqrt(self.dim)
-        self.learning_rate_2 = 1 / np.sqrt(2 * np.sqrt(self.dim))
+        self.learning_rate_1 = learning_factor / np.sqrt(self.dim)
+        self.learning_rate_2 = learning_factor / np.sqrt(2 * np.sqrt(self.dim))
         self.optimization = optimization
         self.multithread = multithread
         self.num_workers = num_workers
@@ -98,23 +99,27 @@ class EvolutionStrategy:
 
     def _mutate(self, child):
         if self.self_adaptive:
-            for i in range(len(child)):
-                if i < self.dim:
-                    child[i] = max(
-                        child[i]
-                        * np.exp(
-                            self.learning_rate_1 * np.random.normal(0, 1)
-                            + self.learning_rate_2 * np.random.normal(0, 1)
-                        ),
-                        1e-6,
-                    )
-                else:
-                    child[i] += child[i - self.dim] * np.random.normal(0, 1)
+            child[:self.dim] = np.maximum(child[:self.dim] * np.exp(self.learning_rate_1 * np.random.normal(0, 1, size=self.dim) + self.learning_rate_2 * np.random.normal(0, 1)), 1e-6)
+            child[self.dim:] += child[:self.dim] * np.random.normal(0, 1, size=self.dim)
+            # for i in range(len(child)):
+                # if i < self.dim:
+                #     child[i] = max(
+                #         child[i]
+                #         * np.exp(
+                #             self.learning_rate_1 * np.random.normal(0, 1)
+                #             + self.learning_rate_2 * np.random.normal(0, 1)
+                #         ),
+                #         1e-6,
+                #     )
+                # else:
+                #     child[i] += child[i - self.dim] * np.random.normal(0, 1)
 
         else:
+            # for i in range(len(child)):
+            #     child[i] += self.mutation_strength * np.random.normal(0, 1)
+            child += self.mutation_strength * np.random.normal(0, 1, size=self.dim)
 
-            for i in range(len(child)):
-                child[i] += self.mutation_strength * np.random.normal(0, 1)
+            
 
     def _selection(self, offsprings):
         if self.selection_type == "all":
