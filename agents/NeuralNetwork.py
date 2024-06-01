@@ -50,7 +50,6 @@ class NeuralNetwork:
         self.b_3 = weights[offset : offset + size].reshape((self.output_size, 1))
 
     def save(self, filename):
-        # print(self.w_1.size + self.b_1.size + self.w_2.size + self.b_2.size)
         np.savetxt(
             filename,
             np.concatenate(
@@ -112,3 +111,6 @@ class NeuralNetwork:
         x[-1] = self.sigmoid(x[-1])
 
         return x
+    
+    def size(self):
+       return self.w_1.size + self.b_1.size + self.w_2.size + self.b_2.size + self.w_3.size + self.b_3.size

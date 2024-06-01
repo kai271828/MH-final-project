@@ -7,6 +7,19 @@ from NeuralNetwork import NeuralNetwork
 # for each creature: [color one hot(4), type one hot(3), my_record[scaned, saved](2), foe_record[scaned, saved](2), radar one hot(4)] 15 dim
 # for each drone: [drone_x, drone_y, battery] 3 dim
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--weights",
+    type=str,
+    default="",
+    help="weights file",
+)
+try:
+    args = parser.parse_args(args=[])
+    
+except SystemExit as e:
+    print(f"Error parsing arguments: {e}")
+
 
 def reset_creatures(creatures):
     for i in creatures.keys():
@@ -56,7 +69,7 @@ def auto_route(visible, x, y):
 
 
 def act(action, light, x, y, units):
-    def clip(value, maximum=9999, minimum=0):
+    def clip(value, maximum=units-1, minimum=0):
         return max(min(value, maximum), minimum)
 
     if action == 0:
@@ -100,18 +113,8 @@ def act(action, light, x, y, units):
     print(f"MOVE {clip(des_x)} {clip(des_y)} {light}")
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--weights",
-    type=str,
-    default="",
-    help="weights file",
-)
 
-args = parser.parse_args()
-
-
-model = NeuralNetwork(15 * 12 + 3 * 2)
+model = NeuralNetwork(15 * 12 + 3 * 2, 50, 50, 11) # NeuralNetwork(15 * 12 + 3 * 2)
 
 if args.weights:
     model.load(args.weights)

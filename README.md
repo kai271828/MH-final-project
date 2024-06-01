@@ -138,18 +138,18 @@ Install packages through pip.
 Here is an example:
 ```sh
 python evolution_strategy.py \
-    --num_parents 10 \
+    --num_parents 20 \
     --level 2 \
     --self_adaptive \
     --selection_type "all" \
     --optimization "max" \
-    --generation 20 \
-    --num_offsprings 10 \
+    --generation 50 \
+    --num_offsprings 20 \
     --agent "agents/level2.py" \
     --opponent "starterAIs/SS_Starter.py" \
     --opponent_weight_file "" \
     --seed 9527 \
-    --run_name "test"
+    --run_name "level2_test"
 
 ```
 

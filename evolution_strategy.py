@@ -109,7 +109,7 @@ class EvolutionStrategy:
                         1e-6,
                     )
                 else:
-                    child[i] += child[-1] * np.random.normal(0, 1)
+                    child[i] += child[i - self.dim] * np.random.normal(0, 1)
 
         else:
 
@@ -194,7 +194,7 @@ class EvolutionStrategy:
 def main(args):
     level2dim = {
         1: 8355,
-        2: 7328,
+        2: 12461, # 2: 7403,
         3: 8355,
         4: 8355,
     }
