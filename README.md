@@ -149,7 +149,7 @@ python evolution_strategy.py \
     --opponent "starterAIs/SS_Starter.py" \
     --opponent_weight_file "" \
     --seed 9527 \
-    --run_name "level2_test"
+    --run_name "level2_baseline"
 
 ```
 

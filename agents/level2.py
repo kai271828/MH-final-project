@@ -2,7 +2,7 @@ import sys
 import argparse
 import numpy as np
 
-from NeuralNetwork import NeuralNetwork
+from Policy import Policy
 
 # for each creature: [color one hot(4), type one hot(3), my_record[scaned, saved](2), foe_record[scaned, saved](2), radar one hot(4)] 15 dim
 # for each drone: [drone_x, drone_y, battery] 3 dim
@@ -26,21 +26,28 @@ def reset_creatures(creatures):
         creatures[i]["radar"] = [0, 0, 0, 0]
 
 
-def conver2vector(creatures, drones):
-    vector = []
+def create_dm_inputs(creatures, drones, units):
 
+    vector = []
     for i in sorted(drones.keys()):
-        vector.append(drones[i]["x"])
-        vector.append(drones[i]["y"])
-        # vector.append(drones[i]["emergency"])
-        vector.append(drones[i]["battery"])
+        vector.append(drones[i]["x"] / units)
+        vector.append(drones[i]["y"] / units)
 
     for i in sorted(creatures.keys()):
         vector.extend(creatures[i]["color"])
         vector.extend(creatures[i]["type"])
         vector.extend(creatures[i]["my_record"])
         vector.extend(creatures[i]["foe_record"])
-        vector.extend(creatures[i]["radar"])
+
+    return np.array(vector).reshape((-1, 1))
+
+def create_act_inputs(creatures, creature_id, drones, my_drone_id, units):
+    vector = []
+    vector.append(drones[my_drone_id]["x"] / units)
+    vector.append(drones[my_drone_id]["y"] / units)
+    vector.append(drones[my_drone_id]["battery"])
+
+    vector.extend(creatures[creature_id]["radar"])
 
     return np.array(vector).reshape((-1, 1))
 
@@ -55,22 +62,15 @@ def auto_route(visible, x, y):
     des_x = -1
     des_y = -1
 
-    for i in range(len(visible)):
-        if creatures[visible[i]["id"]]["my_record"][0] == 0:
-            des_x = visible[i]["x"] + visible[i]["vx"]
-            des_y = visible[i]["y"] + visible[i]["vy"]
-            break
+    des_x = visible[0]["x"] + visible[0]["vx"]
+    des_y = visible[0]["y"] + visible[0]["vy"]
 
-    if des_x == -1 or des_y == -1:
-        return False
-    else:
-        print(f"MOVE {int(des_x)} {int(des_y)} 1")
-        return True
+    print(f"MOVE {int(des_x)} {int(des_y)} 1")
 
+def clip(value, maximum=9999, minimum=0):
+    return max(min(int(value), maximum), minimum)
 
-def act(action, light, x, y, units):
-    def clip(value, maximum=units-1, minimum=0):
-        return max(min(value, maximum), minimum)
+def act(action, light, x, y):
 
     if action == 0:
         # move T
@@ -113,16 +113,18 @@ def act(action, light, x, y, units):
     print(f"MOVE {clip(des_x)} {clip(des_y)} {light}")
 
 
-
-model = NeuralNetwork(15 * 12 + 3 * 2, 50, 50, 11) # NeuralNetwork(15 * 12 + 3 * 2)
+policy = Policy()
 
 if args.weights:
-    model.load(args.weights)
+    policy.load(args.weights)
 
 
 pos_encoding = {"TL": 0, "TR": 1, "BL": 2, "BR": 3}
 units = 10000
 action_lock = False
+need_decision = True
+target = 2
+same_target_turn = 0
 
 creature_count = int(input())
 creatures = {}
@@ -144,6 +146,7 @@ drones = {}
 # game loop
 while True:
 
+    same_target_turn += 1
     reset_creatures(creatures)
     visible = []
 
@@ -203,18 +206,18 @@ while True:
         creature_id, creature_x, creature_y, creature_vx, creature_vy = [
             int(j) for j in input().split()
         ]
-        visible.append(
-            {
-                "id": creature_id,
-                "x": creature_x,
-                "y": creature_y,
-                "vx": creature_vx,
-                "vy": creature_vy,
-            }
-        )
+        if creatures[creature_id]["my_record"][0] == 0:
+            visible.append(
+                {
+                    "id": creature_id,
+                    "x": creature_x,
+                    "y": creature_y,
+                    "vx": creature_vx,
+                    "vy": creature_vy,
+                }
+            )
 
     radar_blip_count = int(input())
-    print(f"radar_blip_count: {radar_blip_count}", file=sys.stderr, flush=True)
     for i in range(radar_blip_count):
         inputs = input().split()
         drone_id = int(inputs[0])
@@ -229,45 +232,87 @@ while True:
             file=sys.stderr,
             flush=True,
         )
-    print(
-        f"visible: {visible}",
-        file=sys.stderr,
-        flush=True,
-    )
 
-    for i in range(my_drone_count):
-
-        if action_lock:
-            if drones[my_drone_id]["y"] <= 500:
-                action_lock = False
-            else:
-                print(f"MOVE {drones[my_drone_id]['x']} 0 0")
-                continue
-
-        if visible_creature_count > 0:
-            move = auto_route(
-                visible, drones[my_drone_id]["x"], drones[my_drone_id]["y"]
-            )
-            if move:
-                continue
-
-        inputs = conver2vector(creatures, drones)
-
-        outputs = model(inputs).flatten()
-
-        action = np.argmax(outputs[:-1])
-
+    for item in sorted(drones.items()):
         print(
-            f"action: {action}",
+            item,
+            file=sys.stderr,
+            flush=True,
+        )
+    print(
+            f"visible: {visible}",
             file=sys.stderr,
             flush=True,
         )
 
-        if action == 9:
-            action_lock = True
-            print(f"MOVE {drones[my_drone_id]['x']} 0 0")
+    for i in range(my_drone_count):
+
+        if visible:
+            auto_route(
+                visible, drones[my_drone_id]["x"], drones[my_drone_id]["y"]
+            )
             continue
 
-        light = 1 if outputs[-1] > 0.5 else 0
+        if action_lock:
+            if drones[my_drone_id]["y"] <= 500:
+                action_lock = False
+                need_decision = True
+            else:
+                print(f"MOVE {int(drones[my_drone_id]['x'])} 0 0")
+                continue
 
-        act(action, light, drones[my_drone_id]["x"], drones[my_drone_id]["y"], units)
+        
+        if (not need_decision) and creatures[target]["my_record"][0] == 1:
+            need_decision = True
+
+        if need_decision:
+
+            print(
+                f"run policy.decision_maker",
+                file=sys.stderr,
+                flush=True,
+            )
+
+            same_target_turn = 0
+
+            inputs = create_dm_inputs(creatures, drones, units)
+
+            outputs = policy.decision_maker(inputs).flatten()
+
+            target = np.argmax(outputs) + 2 # fish ids start from 2
+
+            if target == 14:
+                print(f"MOVE {int(drones[my_drone_id]['x'])} 0 0")
+                action_lock = True
+                continue
+            else:
+                need_decision = False
+
+        print(
+            f"target: {target}",
+            file=sys.stderr,
+            flush=True,
+        )
+
+        radar = creatures[target]["radar"]
+
+        # {"TL": 0, "TR": 1, "BL": 2, "BR": 3}
+        des_x = drones[my_drone_id]["x"]
+        des_y = drones[my_drone_id]["y"]
+        light = 1 if np.random.random() < (same_target_turn / 100) else 0
+
+        if radar[0]:
+            des_x -= 600
+            des_y -= 600
+        elif radar[1]:
+            des_x += 600
+            des_y -= 600
+        elif radar[2]:
+            des_x -= 600
+            des_y += 600
+        elif radar[3]:
+            des_x += 600
+            des_y += 600
+            
+            
+        print(f"MOVE {clip(des_x)} {clip(des_y)} {light}")

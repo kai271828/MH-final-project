@@ -22,21 +22,29 @@ def seabed_security(jar_path, agent, opponent, opponent_weight_file, level, seed
     def fitness(weight, weight_file="cache/weight.txt"):
         
         np.savetxt(weight_file, weight.flatten())
+        score1_list = []
+        score2_list = []
 
-        _seed = int(np.random.uniform(-10000, 10000) * seed)
 
-        result = simulate(jar_path, agent, weight_file, opponent, opponent_weight_file, str(level), str(_seed))
+        for _ in range(3):
 
-        result = result.stderr.split("\n")
-        score1 = int(result[-3])
-        score2 = int(result[-2])
+            _seed = int(np.random.uniform(-10000, 10000) * seed)
 
-        ret = 0.5 * score1 + 0.5 * (score1 - score2) if difference_mode else score1
+            result = simulate(jar_path, agent, weight_file, opponent, opponent_weight_file, str(level), str(_seed))
+
+            scores = result.stderr.split("\n")
+            score1_list.append(int(scores[-3]))
+            score2_list.append(int(scores[-2]))
+
+            if int(scores[-3]) == -1:
+                print(result.stdout)
+
+        fitness = 0.5 * np.min(score1_list) - 0.5 * np.min(score2_list) if difference_mode else np.min(score1_list)
 
         if verbose:
-            print(f"agent's score: {score1},\topponent's score: {score2},\treturned score: {ret}")
+                print(f"agent's score: {score1_list},\topponent's score: {score2_list},\tfitness: {fitness}")
 
-        return ret if not parallel else (int(weight_file.split("_")[-1].split(".")[0]), ret)
+        return fitness if not parallel else (int(weight_file.split("_")[-1].split(".")[0]), fitness)
     
     def parallel_fitness(weights, max_workers=8):
         scores = {}

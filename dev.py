@@ -1,15 +1,20 @@
 import numpy as np
-from agents.NeuralNetwork import NeuralNetwork
+from agents.Policy import Policy
 from utils import simulate, seabed_security
 
-model = NeuralNetwork(15 * 12 + 3 * 2, 50, 50, 11)
+policy = Policy()
+read_from_file = Policy()
 
-print(model.size())
+print(read_from_file.num_parameters)
 
-# test = np.random.normal(0, 1, (11, 1))
+# print(policy.weights)
 
-# test[:-1] = model.softmax(test[:-1])
-# test[-1] = model.sigmoid(test[-1])
+# for k in policy.weights.keys():
+#     print(k)
 
-# print(test)
-# print(np.argmax(test[:-1]))
+# policy.save("dev.txt")
+# read_from_file.load("dev.txt")
+
+# print(policy.weights["dm_w_2"] == read_from_file.weights["dm_w_2"])
+# print(policy.weights["act_w_2"] == read_from_file.weights["act_w_2"])
+
