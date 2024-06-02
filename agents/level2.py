@@ -208,7 +208,7 @@ while True:
         creature_id, creature_x, creature_y, creature_vx, creature_vy = [
             int(j) for j in input().split()
         ]
-        if creatures[creature_id]["my_record"][0] == 0:
+        if creatures[creature_id]["my_record"][0] == 0 and creatures[creature_id]["my_record"][1] == 0:
             visible.append(
                 {
                     "id": creature_id,
