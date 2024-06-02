@@ -10,7 +10,7 @@ class Policy:
     def __init__(
         self, 
         dm_input_size=136,
-        dm_hidden_size=64, 
+        dm_hidden_size=50, 
         dm_output_size=13, 
         act_input_size=7,
         act_hidden_size=32, 
