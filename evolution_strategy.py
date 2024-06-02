@@ -207,7 +207,7 @@ class EvolutionStrategy:
 def main(args):
     level2dim = {
         1: 8355,
-        2: 10616,
+        2: 10118,
         3: 8355,
         4: 8355,
     }

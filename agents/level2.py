@@ -158,12 +158,14 @@ while True:
         creature_id = int(input())
 
         creatures[creature_id]["my_record"][1] = 1
+        creatures[creature_id]["my_record"][0] = 0
 
     foe_scan_count = int(input())
     for i in range(foe_scan_count):
         creature_id = int(input())
 
         creatures[creature_id]["foe_record"][1] = 1
+        creatures[creature_id]["foe_record"][0] = 0
 
     my_drone_count = int(input())
     for i in range(my_drone_count):

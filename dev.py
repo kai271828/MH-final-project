@@ -6,9 +6,8 @@ policy = Policy()
 
 print(policy.num_parameters)
 
-# policy.load("result/level2_baseline/1-th_original.txt")
 
-
+# policy.load("result/level2_baseline/2-th_original.txt")
 # policy.save("dev.txt")
 
 
