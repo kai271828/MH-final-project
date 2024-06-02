@@ -52,12 +52,14 @@ class Policy:
            )
            offset += self.weights[k].size
 
-    def save(self, filename):
+    def save(self, filename, precision=2):
         np.savetxt(
             filename,
             np.concatenate(
                 [weight.flatten() for weight in self.weights.values()]
             ),
+            newline=",", 
+            fmt=f"%.{precision}f",
         )
 
     def load_from_numpy(self, weights):

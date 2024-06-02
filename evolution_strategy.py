@@ -107,6 +107,7 @@ class EvolutionStrategy:
                 ),
                 1e-6,
             )
+            print(f"Mean sigma: {np.mean(child[: self.dim])}")
             child[self.dim :] += child[: self.dim] * np.random.normal(
                 0, 1, size=self.dim
             )
