@@ -73,7 +73,7 @@ def auto_route(visible, x, y):
 def clip(value, maximum=9999, minimum=0):
     return max(min(int(value), maximum), minimum)
 
-policy = Policy()
+policy = Policy(dm_input_size=138)
 
 creature_count = int(input())
 creatures = {}
@@ -126,7 +126,7 @@ while True:
         creature_id = int(input())
         creatures[creature_id]["my_record"][1] = 1
         creatures[creature_id]["my_record"][0] = 0
-        penalty[creature_id - 2] = 10
+        penalty[creature_id - 4] = 10
 
     foe_scan_count = int(input())
 
@@ -269,15 +269,15 @@ while True:
             outputs[-1] -= pos_penalty[i]
 
 
-            targets[i] = np.argmax(outputs) + 2 # fish ids start from 2
+            targets[i] = np.argmax(outputs) + 4 # fish ids start from 4
 
-            if targets[i] == 14 or creatures[targets[i]]["my_record"][0] == 1:
+            if targets[i] == 16 or creatures[targets[i]]["my_record"][0] == 1:
                 print(f"MOVE {int(drones[my_drone_ids[i]]['x'])} 0 0")
                 action_lock[i] = True
                 continue
             else:
                 need_decision[i] = False
-                penalty[targets[i] - 2] = 1
+                penalty[targets[i] - 4] = 1
 
         print(
             f"target: {targets[i]}",

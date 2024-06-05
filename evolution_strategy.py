@@ -1,7 +1,10 @@
 import argparse
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
+from matplotlib.ticker import MaxNLocator
+
 
 from utils import sphere_function, seabed_security
 
@@ -149,6 +152,7 @@ class EvolutionStrategy:
             raise ValueError
 
     def evolve(self, generation, num_offsprings, verbose=False):
+        fitness_record = []
 
         for g in tqdm(range(generation)):
             offsprings = []
@@ -201,15 +205,17 @@ class EvolutionStrategy:
 
                 self.parents = self._selection(offsprings)
 
-        return self.parents
+            fitness_record.append(self.parents[0]["score"])
+
+        return self.parents, fitness_record
 
 
 def main(args):
     level2dim = {
-        1: 8355,
-        2: 10118,
-        3: 8355,
-        4: 8355,
+        1: 9565,
+        2: 9565,
+        3: 10310,
+        4: 10118,
     }
 
     es = EvolutionStrategy(
@@ -235,7 +241,7 @@ def main(args):
         learning_factor=args.learning_factor,
     )
 
-    result = es.evolve(args.generation, args.num_offsprings, verbose=args.verbose)
+    result, fitness_record = es.evolve(args.generation, args.num_offsprings, verbose=args.verbose)
 
     if not os.path.exists("result"):
         os.makedirs("result")
@@ -243,6 +249,16 @@ def main(args):
     des = os.path.join("result", args.run_name)
     if not os.path.exists(des):
         os.makedirs(des)
+
+    plt.plot([num for num in range(len(fitness_record))], fitness_record, marker='o', linestyle='-', color='b')
+
+    plt.title("Convergence Curve")
+    plt.xlabel("Generation")
+    plt.ylabel("Fitness")
+
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+
+    plt.savefig(os.path.join(des, "Convergence Curve.png"))
 
     for i, r in enumerate(result):
         print(r["score"])

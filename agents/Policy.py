@@ -11,20 +11,27 @@ class Policy:
         self, 
         dm_input_size=136,
         dm_hidden_size=48, 
-        dm_output_size=13, 
+        dm_output_size=13,
+        need_actor=False,
         act_input_size=7,
         act_hidden_size=32, 
         act_output_size=9, 
     ):
         
+        self.need_actor = need_actor
+
         self.size_list = [
             dm_input_size, 
             dm_hidden_size, 
             dm_output_size, 
-            act_input_size, 
-            act_hidden_size, 
-            act_output_size
         ]
+
+        if self.need_actor:
+            self.size_list.extend([
+                act_input_size, 
+                act_hidden_size, 
+                act_output_size
+            ])
 
         self.weights = {}
 
@@ -34,11 +41,12 @@ class Policy:
         self.weights["dm_b_2"] = np.zeros((self.size_list[1], 1))
         self.weights["dm_w_3"] = np.random.normal(0, 1.5, size=(self.size_list[2], self.size_list[1]))
         self.weights["dm_b_3"] = np.zeros((self.size_list[2], 1))
-
-        self.weights["act_w_1"] = np.random.normal(0, 1.5, size=(self.size_list[4], self.size_list[3]))
-        self.weights["act_b_1"] = np.zeros((self.size_list[4], 1))
-        self.weights["act_w_2"] = np.random.normal(0, 1.5, size=(self.size_list[5], self.size_list[4]))
-        self.weights["act_b_2"] = np.zeros((self.size_list[5], 1))
+        
+        if need_actor:
+            self.weights["act_w_1"] = np.random.normal(0, 1.5, size=(self.size_list[4], self.size_list[3]))
+            self.weights["act_b_1"] = np.zeros((self.size_list[4], 1))
+            self.weights["act_w_2"] = np.random.normal(0, 1.5, size=(self.size_list[5], self.size_list[4]))
+            self.weights["act_b_2"] = np.zeros((self.size_list[5], 1))
 
 
     def load(self, filename):
