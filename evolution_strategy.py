@@ -215,7 +215,7 @@ def main(args):
         1: 9565,
         2: 9565,
         3: 10310,
-        4: 10118,
+        4: 10310,
     }
 
     es = EvolutionStrategy(
@@ -259,6 +259,8 @@ def main(args):
     plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
 
     plt.savefig(os.path.join(des, "Convergence Curve.png"))
+
+    np.savetxt(f"{des}/fitness_record.txt", fitness_record)
 
     for i, r in enumerate(result):
         print(r["score"])

@@ -57,7 +57,7 @@ def seabed_security(
                 print(result.stdout)
 
         fitness = (
-            np.min(score1_list) - 0.5 * np.min(score2_list)
+            np.min(score1_list) - np.min(score2_list)
             if difference_mode
             else np.min(score1_list)
         )
