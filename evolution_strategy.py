@@ -212,7 +212,7 @@ class EvolutionStrategy:
 
 def main(args):
     level2dim = {
-        1: 9565,
+        1: 673,
         2: 9565,
         3: 10310,
         4: 10310,
@@ -366,7 +366,7 @@ def parse_args():
     parser.add_argument(
         "--seed",
         type=int,
-        default=9527,
+        default=0,
         help="The seed of simulation.",
     )
     parser.add_argument(

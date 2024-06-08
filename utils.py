@@ -35,9 +35,9 @@ def seabed_security(
         score1_list = []
         score2_list = []
 
-        for _ in range(3):
+        for _ in range(3 if seed == 0 else 1):
 
-            _seed = int(np.random.uniform(-10000, 10000) * seed)
+            _seed = int(np.random.uniform(-1000000000, 1000000000)) if seed == 0 else seed
 
             result = simulate(
                 jar_path,

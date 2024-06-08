@@ -139,18 +139,18 @@ Here is an example:
 ```sh
 python evolution_strategy.py \
     --num_parents 5 \
-    --level 2 \
+    --level 1 \
     --self_adaptive \
     --selection_type "all" \
     --optimization "max" \
     --generation 5 \
     --num_offsprings 5 \
     --learning_factor 10 \
-    --agent agents/level2_wo_support.py \
-    --opponent agents/level2.py \
+    --agent agents/level1_deprecated.py \
+    --opponent agents/level1_deprecated.py \
     --opponent_weight_file "" \
     --seed 9527 \
-    --run_name "level2_exp" \
+    --run_name "level1" \
     --verbose
 ```
 
